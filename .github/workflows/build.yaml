@@ -1,0 +1,68 @@
+name: Publish to Exchange & Deploy to CH2.0
+
+on:
+  push:
+    branches: [ dev, main ]
+
+jobs:
+  build-and-publish-to-exchange:
+    name: build-and-publish-to-exchange
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'dev'
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Publish to Exchange
+        run: |
+          mvn -B deploy --settings .maven/settings.xml -DskipMunitTests 
+
+  deploy-to-cloudhub-dev:
+    name: deploy-to-cloudhub
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'dev'
+    needs: [ build-and-publish-to-exchange ]
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Deploy to CloudHub 2.0
+        run: |
+          mvn -B deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy -Denv=dev -Dkey="${{secrets.KEY}}"  -Danypoint.client.id="${{ secrets.ANYPOINT_CLIENT_ID }}" -Danypoint.client.secret="${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+          
+
+  deploy-to-cloudhub-main:
+    name: deploy-to-cloudhub
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Deploy to CloudHub 2.0
+        run: |
+          mvn -B deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy -Denv=dev -Dkey="${{secrets.KEY}}"  -Danypoint.client.id="${{ secrets.ANYPOINT_CLIENT_ID }}" -Danypoint.client.secret="${{ secrets.ANYPOINT_CLIENT_SECRET }}" 

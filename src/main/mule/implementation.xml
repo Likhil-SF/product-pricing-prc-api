@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-all-product-sub-flow"
+		doc:id="26446041-ccef-4c3d-a283-bd404ad756a5">
+		<logger level="INFO" doc:name="Start Log"
+			doc:id="37ade784-14dc-480e-aed0-222f8a8a4eb0"
+			message="#[output json&#10;---&#10;{&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;Get all Products flow started&quot;,&#10;	&quot;requestedCurrency&quot;: attributes.queryParams.'currencyCode',&#10;	&quot;limit&quot;: attributes.queryParams.'limit',&#10;	&quot;offset&quot;: attributes.queryParams.'offset',&#10;	&quot;time&quot;: now()&#10;}]" />
+		<ee:transform
+			doc:name="Set CurrencyCode, offset, limit Variable"
+			doc:id="830ae640-3f67-4c6c-b2da-0a6878f3b9af">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="currencyCode"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.'currencyCode']]></ee:set-variable>
+				<ee:set-variable variableName="limit"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.'limit']]></ee:set-variable>
+				<ee:set-variable variableName="offset"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.'offset']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:cache doc:name="Cache"
+			doc:id="b53a85b0-3246-4315-8919-5e39a25a1b75"
+			cachingStrategy-ref="Caching_Strategy">
+			<http:request method="GET" doc:name="Get: Currency API"
+				doc:id="bdc7937d-6c3f-4d56-a4e0-92275b195b26"
+				config-ref="HTTPRequestConfigurationCurrencyProxyApi"
+				responseTimeout="${request.responseTimeOut}"
+				sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]"
+				path="${currencyApi.path}">
+				<reconnect frequency="${request.reconnection.frequency}"
+					count="${request.reconnection.attempts}" />
+				<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::currencyApi.clientId'),
+	"client_secret": p('secure::currencyApi.clientSecret')
+}]]]></http:headers>
+			</http:request>
+		</ee:cache>
+		<set-variable value="#[payload]"
+			doc:name="Set Variable rates"
+			doc:id="2a7f769c-8f6b-4567-ae79-b1906d01a3ed" variableName="rates" />
+		<http:request method="GET" doc:name="GET: /records"
+			doc:id="851afa31-8b3f-4c68-9a82-c70f9690a24b"
+			config-ref="HTTPRequestConfigurationSalesforceSysApi"
+			path="${salesforceApi.path.getProducts}"
+			responseTimeout="${request.responseTimeOut}"
+			sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]">
+			<reconnect frequency="${request.reconnection.frequency}"
+				count="${request.reconnection.attempts}" />
+			<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output java
+---
+{
+	"object": p('product.objectName'),
+	"limit": vars.limit,
+	"offset": vars.offset
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Response"
+			doc:id="188c8a0c-f735-49a7-abc8-e6387eef6587">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/get-all-products-res.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Log"
+			doc:id="e494e1ce-09c7-481c-bd74-2ca98ab7c0b2"
+			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Get all Products flow Ended",&#10;	"requestedCurrency": vars.currencyCode,&#10;	"limit": vars.limit,&#10;	"offset": vars.offset,&#10;	"time": now()&#10;}]' />
+	</sub-flow>
+	<sub-flow name="create-products-sub-flow"
+		doc:id="4d5e0e2e-6db6-48c0-973e-bb3cc4fc8f39">
+		<logger level="INFO" doc:name="Start Log"
+			doc:id="30c4c43d-4c02-493f-bdfc-ba3d41b314c7"
+			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Create Products flow started",&#10;	"time": now()&#10;}]' />
+		<set-variable value="#[payload]"
+			doc:name="Set Var initialPayload"
+			doc:id="cb1482b6-7a0d-4936-a4c5-b0126f36d92d"
+			variableName="initialPayload" />
+		<ee:transform
+			doc:name="Transform Payload to Salesforce Format"
+			doc:id="321ebbe8-2cf6-489b-b366-66903dff2ad8">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/msg-create-product-req.dwl" />
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="POST: /records"
+			doc:id="2ee2ccfb-2f18-43b9-8ff4-fc15ae3acd47"
+			config-ref="HTTPRequestConfigurationSalesforceSysApi"
+			path="${salesforceApi.path.createProducts}"
+			responseTimeout="${request.responseTimeOut}">
+			<reconnect frequency="${request.reconnection.frequency}"
+				count="${request.reconnection.attempts}" />
+			<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output java
+---
+{
+	"object" : p('product.objectName')
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Response"
+			doc:id="eae2d6ec-3341-4861-a9d9-668af5ad8cf7">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/msg-create-product-res.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log summary"
+			doc:id="72323f81-ce00-4b84-8d68-18eafd2419fd"
+			message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"correlationId": vars.correlationId,&#10;	"message": "Create Products Response",&#10;	"time": now(),&#10;"Log": payload}]' />
+		<logger level="INFO" doc:name="End Log"
+			doc:id="3cfcd156-517c-4b08-be32-384d32fc1e57"
+			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Craete Products flow Ended",&#10;	"time": now()&#10;}]' />
+	</sub-flow>
+	<sub-flow name="update-product-sub-flow"
+		doc:id="0977dd14-b985-45e6-b484-0d16902f7a8e">
+		<logger level="INFO" doc:name="Start Log"
+			doc:id="508ae7f6-cabf-4c39-a306-e8a03285c78a"
+			message="#[output json&#10;---&#10;{&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;Update Product flow started&quot;,&#10;	&quot;productId&quot;: attributes.uriParams.'productId',&#10;	&quot;time&quot;: now()&#10;}]" />
+		<ee:transform
+			doc:name="Transform Payload to Salesforce Format"
+			doc:id="8651fd62-f516-41d8-aecc-860f6a5c71b8">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="productId"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams.'productId']]></ee:set-variable>
+				<ee:set-variable
+					resource="dw/var-update-initial-payload.dwl"
+					variableName="initialPayload" />
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="GET: /record"
+			doc:id="6784c8f3-48a3-4ade-95a2-505f35584de5"
+			config-ref="HTTPRequestConfigurationSalesforceSysApi"
+			path="${salesforceApi.path.getProductId}"
+			responseTimeout="${request.responseTimeOut}">
+			<reconnect frequency="${request.reconnection.frequency}"
+				count="${request.reconnection.attempts}" />
+			<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output java
+---
+{
+	"externalIdName": "External_Id__c",
+	"externalIdValue": attributes.uriParams.'productId',
+	"object": p('product.objectName')
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Check if response is not empty"
+			doc:id="fd1e9598-6afc-4ffb-95ec-ec845fee8abf">
+			<when expression="#[!isEmpty(payload)]">
+				<http:request method="PATCH" doc:name="PUT: /records"
+					doc:id="390a9dd4-bd51-467d-851c-9f4b422a25bc"
+					config-ref="HTTPRequestConfigurationSalesforceSysApi"
+					path='${salesforceApi.path.updateProduct}{productId}'
+					responseTimeout="${request.responseTimeOut}">
+					<reconnect frequency="${request.reconnection.frequency}"
+						count="${request.reconnection.attempts}" />
+					<http:body><![CDATA[#[vars.initialPayload]]]></http:body>
+					<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"productId" : payload.Id[0]
+}]]]></http:uri-params>
+					<http:query-params><![CDATA[#[output json
+---
+{
+	"object": p('product.objectName')
+}]]]></http:query-params>
+				</http:request>
+				<ee:transform doc:name="Transform Response"
+					doc:id="283837b8-5063-4d7a-92e8-71340f38c54d">
+					<ee:message>
+						<ee:set-payload resource="dw/msg-update-res.dwl" />
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Response"
+					doc:id="4b208166-1170-49c2-895d-db364cc6c112">
+					<ee:message>
+						<ee:set-payload
+							resource="dw/msg-update-res-failure.dwl" />
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Log summary"
+			doc:id="d2ddd1aa-271f-483e-8953-695a8b940bbf"
+			message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"correlationId": vars.correlationId,&#10;	"message": "Update Products Response",&#10;	"time": now(),&#10;"Log": payload}]' />
+		<logger level="INFO" doc:name="End Log"
+			doc:id="97f58675-b10d-4f1b-8002-474a0bac8dc9"
+			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Update Product flow Ended",&#10;	"time": now()&#10;}]' />
+	</sub-flow>
+	<sub-flow name="delete-product-sub-flow"
+		doc:id="94cabb73-6464-46b8-a948-393316c78e89">
+		<logger level="INFO" doc:name="Start Log"
+			doc:id="14007571-19e9-43a7-826b-374f3ae8bbe4"
+			message="#[output json&#10;---&#10;{&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;Delete Product flow started&quot;,&#10;	&quot;productId&quot;: attributes.uriParams.'productId',&#10;	&quot;time&quot;: now()&#10;}]" />
+		<set-variable value="#[attributes.uriParams.'productId']"
+			doc:name="Set var productId"
+			doc:id="2ca43b0a-fc7e-4b42-9e13-012e23d33fab"
+			variableName="productId" />
+		<http:request method="GET" doc:name="GET: /record"
+			doc:id="670856ca-79ca-4d3d-9016-b908f4b022f3"
+			config-ref="HTTPRequestConfigurationSalesforceSysApi"
+			path="/api/record" responseTimeout="${request.responseTimeOut}">
+			<reconnect frequency="${request.reconnection.frequency}"
+				count="${request.reconnection.attempts}" />
+			<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output java
+---
+{
+	"object": p('product.objectName'),
+	"externalIdName": "External_Id__c",
+	"externalIdValue": vars.productId
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Check if response is not empty"
+			doc:id="d2b6f547-d5d9-40f3-a033-9f5ccc39f09a">
+			<when expression="#[!isEmpty(payload)]">
+				<http:request method="DELETE"
+					doc:name="Delete: /record"
+					doc:id="bef87fb6-15a0-41cd-aa0a-ede9d8214334"
+					config-ref="HTTPRequestConfigurationSalesforceSysApi"
+					path='${salesforceApi.path.deleteProduct}{productId}'
+					responseTimeout="${request.responseTimeOut}">
+					<reconnect frequency="${request.reconnection.frequency}"
+						count="${request.reconnection.attempts}" />
+					<http:headers><![CDATA[#[output java
+---
+{
+	"client_id": p('secure::salesforceApi.clientId'),
+	"client_secret": p('secure::salesforceApi.clientSecret')
+}]]]></http:headers>
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"productId" : payload.Id[0]
+}]]]></http:uri-params>
+					<http:query-params><![CDATA[#[output java
+---
+{
+	"object": p('product.objectName')
+}]]]></http:query-params>
+				</http:request>
+				<ee:transform doc:name="Transform Response"
+					doc:id="0532cf19-b13a-437d-a54b-dc3314807f88">
+					<ee:message>
+						<ee:set-payload resource="dw/msg-delete-res.dwl" />
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Response"
+					doc:id="b1666e19-b114-4f64-884e-5a6f6ab8b094">
+					<ee:message>
+						<ee:set-payload
+							resource="dw/msg-delete-res-failure.dwl" />
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Log summary"
+			doc:id="c74d6c27-220c-4e66-8ab1-01e615eb2324"
+			message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"correlationId": vars.correlationId,&#10;	"message": "Delete Products Response",&#10;	"time": now(),&#10;"Log": payload}]' />
+		<logger level="INFO" doc:name="End Log"
+			doc:id="e3769be9-3e91-479b-b39f-af3e89f74d44"
+			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Delete Product flow Ended",&#10;	"productId": vars.productId,&#10;	"time": now()&#10;}]' />
+	</sub-flow>
+</mule>

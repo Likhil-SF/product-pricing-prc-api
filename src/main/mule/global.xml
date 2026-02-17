@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+    <http:listener-config name="product-pricing-prc-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="product-pricing-prc-api-config" api="resource::ab9b269f-eba0-4815-8ef3-e14af1ec32c1:product-pricing-prc-api:1.0.3:raml:zip:product-pricing-prc-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <http:request-config name="HTTPRequestConfigurationSalesforceSysApi" doc:name="HTTP Request configuration" doc:id="aa10c14c-5398-4ea2-b290-f73b4482ee6f">
+        <http:request-connection protocol="${salesforceApi.protocol}" host="${salesforceApi.host}" port="${salesforceApi.port}" />
+    </http:request-config>
+    <http:request-config name="HTTPRequestConfigurationCurrencyProxyApi" doc:name="HTTP Request configuration" doc:id="8c18286c-1214-4402-bf5c-a531e58bb8d1">
+        <http:request-connection protocol="HTTPS" host="${currencyApi.host}" port="${currencyApi.port}" />
+    </http:request-config>
+    <os:object-store name="Object_store" doc:name="Object store" doc:id="9b6c9a52-03b6-4edf-8998-3094087f593c" entryTtl="${objectStoreCache.entryttl}" expirationInterval="${objectStoreCache.expirationInterval}" />
+    <ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="97ab2bae-116a-47b3-9921-d986179f5995" objectStore="Object_store" />
+    <configuration-properties doc:name="Configuration properties" doc:id="df20a878-6d15-47d5-939d-195edb88e832" file="properties/${env}.yaml" />
+    <secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="2fe46529-c096-4221-b4b4-b007d7b1ef03" file="properties\secure-${env}.yaml" key="${key}" />
+    <configuration doc:name="Configuration" doc:id="b8ebb978-6d7a-4e66-b2ce-7bde354c457a" defaultErrorHandler-ref="global-error-handler" />
+    <global-property doc:name="Global Property" doc:id="3ef74a05-7ab9-44bb-a062-adfc7ab44d68" name="env" value="dev" />
+    <global-property doc:name="Global Property" doc:id="1211406b-3aac-4d10-b58f-bce728625d83" name="key" value="Mulesoft@2026123" />
+    <api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="224f2e0d-c12e-4b09-bb3a-36cc57ae424b" flowRef="product-pricing-prc-api-main" />
+	
+</mule>

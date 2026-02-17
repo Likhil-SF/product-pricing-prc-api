@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd">
+  <servers>
+
+    <server>
+	  <id>anypoint-exchange-v2</id>
+          <username>~~~Client~~~</username>
+	  <password>306ad5b40551421d8df19b8907a9c67d~?~FC9652b70E36428b9Cf4C90D2257B680</password>
+    </server> 
+  </servers>
+ </settings>

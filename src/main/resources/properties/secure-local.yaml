@@ -1,0 +1,7 @@
+salesforceApi:
+  clientId: "![ffoHW+6p4BO9Sn6OI176xjfltWJIg/wOb6HTf4erQNqmhNvDxxM75kPLDQ7XErCC]"
+  clientSecret: "![6h24H64MRfkq69ua+QjPquud8CDoCMNk7Q64mkRxBSkRbUF8kC7Ribm7HbyeBa9n]"
+  
+currencyApi:
+  clientId: "![Z6dsYZ5C8e/iNWst1m8tH/ED8eUZ6DbngUVtSwhOv1t15KO7amtwYuaS0Tm8e7xs]"
+  clientSecret: "![57cbZSQZsLADHe0VUlE/gbeeMFwSAhhlusq2G5kJMyy5fr2SLYBWlyAnyAVWk4hQ]"

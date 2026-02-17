@@ -1,0 +1,11 @@
+%dw 2.0
+
+type auto_0977dd14_b985_45e6_b484_0d16902f7a8e_Input_Payload = {
+  productCode?: String, 
+  description?: String, 
+  currencyCode?: String, 
+  productName?: String, 
+  productPrice?: Number, 
+  _?: Any
+}
+
