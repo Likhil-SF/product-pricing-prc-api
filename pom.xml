@@ -4,7 +4,7 @@
 
 	<groupId>ab9b269f-eba0-4815-8ef3-e14af1ec32c1</groupId>
 	<artifactId>product-pricing-prc-app</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>mule-application</packaging>
 
 	<name>product-pricing-prc-app</name>

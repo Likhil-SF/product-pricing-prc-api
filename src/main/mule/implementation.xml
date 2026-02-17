@@ -174,8 +174,8 @@ attributes.uriParams.'productId']]></ee:set-variable>
 			<http:query-params><![CDATA[#[output java
 ---
 {
-	"externalIdName": "External_Id__c",
-	"externalIdValue": attributes.uriParams.'productId',
+	"condition": "External_Id__c",
+	"conditionValue": attributes.uriParams.'productId',
 	"object": p('product.objectName')
 }]]]></http:query-params>
 		</http:request>
@@ -256,8 +256,8 @@ attributes.uriParams.'productId']]></ee:set-variable>
 ---
 {
 	"object": p('product.objectName'),
-	"externalIdName": "External_Id__c",
-	"externalIdValue": vars.productId
+	"condition": "External_Id__c",
+	"conditionValue": vars.productId
 }]]]></http:query-params>
 		</http:request>
 		<choice doc:name="Check if response is not empty"
@@ -288,12 +288,6 @@ attributes.uriParams.'productId']]></ee:set-variable>
 	"object": p('product.objectName')
 }]]]></http:query-params>
 				</http:request>
-				<ee:transform doc:name="Transform Response"
-					doc:id="0532cf19-b13a-437d-a54b-dc3314807f88">
-					<ee:message>
-						<ee:set-payload resource="dw/msg-delete-res.dwl" />
-					</ee:message>
-				</ee:transform>
 			</when>
 			<otherwise>
 				<ee:transform doc:name="Transform Response"
@@ -305,9 +299,6 @@ attributes.uriParams.'productId']]></ee:set-variable>
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="Log summary"
-			doc:id="c74d6c27-220c-4e66-8ab1-01e615eb2324"
-			message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"correlationId": vars.correlationId,&#10;	"message": "Delete Products Response",&#10;	"time": now(),&#10;"Log": payload}]' />
 		<logger level="INFO" doc:name="End Log"
 			doc:id="e3769be9-3e91-479b-b39f-af3e89f74d44"
 			message='#[output json&#10;---&#10;{&#10;	"correlationId": vars.correlationId,&#10;	"message": "Delete Product flow Ended",&#10;	"productId": vars.productId,&#10;	"time": now()&#10;}]' />
