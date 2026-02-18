@@ -3,7 +3,7 @@
     <http:listener-config name="product-pricing-prc-api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-    <apikit:config name="product-pricing-prc-api-config" api="resource::ab9b269f-eba0-4815-8ef3-e14af1ec32c1:product-pricing-prc-api:1.0.4:raml:zip:product-pricing-prc-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="product-pricing-prc-api-config" api="resource::ab9b269f-eba0-4815-8ef3-e14af1ec32c1:product-pricing-prc-api:1.0.5:raml:zip:product-pricing-prc-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <http:request-config name="HTTPRequestConfigurationSalesforceSysApi" doc:name="HTTP Request configuration" doc:id="aa10c14c-5398-4ea2-b290-f73b4482ee6f">
         <http:request-connection protocol="${salesforceApi.protocol}" host="${salesforceApi.host}" port="${salesforceApi.port}" />
     </http:request-config>
