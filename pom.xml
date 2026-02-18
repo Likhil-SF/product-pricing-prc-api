@@ -4,7 +4,7 @@
 
 	<groupId>ab9b269f-eba0-4815-8ef3-e14af1ec32c1</groupId>
 	<artifactId>product-pricing-prc-app</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<packaging>mule-application</packaging>
 
 	<name>product-pricing-prc-app</name>
@@ -100,7 +100,7 @@
 		<dependency>
 			<groupId>ab9b269f-eba0-4815-8ef3-e14af1ec32c1</groupId>
 			<artifactId>product-pricing-prc-api</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.4</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
